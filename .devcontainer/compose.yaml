@@ -1,0 +1,12 @@
+services:
+  tws:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ..:/workspace/tws:cached
+    command: sleep infinity
+    tty: true
+    stdin_open: true

@@ -1,0 +1,15 @@
+---
+Language:        Cpp
+BasedOnStyle:    WebKit
+NamespaceIndentation: All
+# ColumnLimit:     100
+# IndentWidth:     4
+# TabWidth:        4
+# UseTab:          Never
+# BreakBeforeBraces: Allman
+# AlignTrailingComments: true
+# AllowShortFunctionsOnASingleLine: Empty
+# ConstructorInitializerAllOnOneLineOrOnePerLine: true
+# ReflowComments:  true
+# SortIncludes:    true
+...
