@@ -19,6 +19,7 @@ RUN apt update && \
   clangd \
   cmake \
   ninja-build \
+  liburing-dev \
   sudo \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*

@@ -6,5 +6,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
+
 add_subdirectory(source)
 add_subdirectory(example)
