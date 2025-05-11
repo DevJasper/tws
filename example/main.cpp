@@ -8,10 +8,10 @@ using ServerSocket = net::ServerSocket;
 int main()
 {
     ServerSocket serverSocket;
-    serverSocket.setBlocking(false);
+    serverSocket.setBlocking(true);
     serverSocket.setReuseAddress(true);
-    // serverSocket.setReceiveBufferSize(1024);
-    // serverSocket.setTimeout(1024);
+    serverSocket.setReceiveBufferSize(1024);
+    serverSocket.setTimeout(5);
     serverSocket.bind("localhost", 80);
     serverSocket.listen(50);
 
