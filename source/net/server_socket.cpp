@@ -25,6 +25,11 @@ ServerSocket::ServerSocket(const char* _address, const int _port, const int _bac
     listen(_backlog);
 }
 
+ServerSocket::~ServerSocket()
+{
+    close();
+}
+
 void ServerSocket::bind(const int _port) noexcept
 {
     bind(nullptr, _port);
@@ -62,7 +67,7 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
             int yes = 1;
             if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
                 ::perror("[ERROR] Failed to make socket address reusable");
-                close(fd);
+                ::close(fd);
                 continue;
             }
         }
@@ -74,7 +79,7 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
             std::println("[INFO] Socket timeout: {} seconds", socketOptions.timeout);
             if (::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &timeout, sizeof(timeout)) == -1) {
                 ::perror("[ERROR] Failed to set socket receive timeout");
-                close(fd);
+                ::close(fd);
                 continue;
             }
         }
@@ -84,13 +89,16 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
             std::println("[INFO] Socket receive buffer size: {}", receiveBufferSize);
             if (::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &receiveBufferSize, sizeof(receiveBufferSize)) == -1) {
                 ::perror("[ERROR] Failed to set socket receive buffer size");
-                close(fd);
+                ::close(fd);
                 continue;
             }
         }
 
-        if (::bind(fd, res->ai_addr, res->ai_addrlen) == 0)
+        if (::bind(fd, res->ai_addr, res->ai_addrlen) == 0) {
+            bound = true;
             break;
+        }
+
         ::close(fd);
     }
 
@@ -114,6 +122,43 @@ void ServerSocket::listen(const int _backlog) noexcept
     }
 
     std::println("[SUCCESS] Socket listening on port {}", port);
+}
+
+int ServerSocket::accept() noexcept
+{
+    struct sockaddr_in clientAddress;
+    socklen_t clientAddressLen = sizeof(address);
+
+    // int clientFd = ::accept4(fd, (struct sockaddr*)&clientAddress, &clientAddressLen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+
+    int clientFd = ::accept4(fd, (struct sockaddr*)&clientAddress, &clientAddressLen, SOCK_CLOEXEC);
+    if (clientFd == -1)
+        ::perror("[ERROR] Socket failed to listen on port");
+
+    // Use std::expected here, return -1 clientfd or Socket when fd is not -1
+
+    return clientFd;
+}
+
+void ServerSocket::close() noexcept
+{
+    if (!isBound())
+        return;
+
+    ::close(fd);
+    fd = -1;
+    bound = false;
+    closed = true;
+}
+
+[[nodiscard]] bool ServerSocket::isBound() noexcept
+{
+    return bound;
+}
+
+[[nodiscard]] bool ServerSocket::isClosed() noexcept
+{
+    return closed;
 }
 
 void ServerSocket::setBlocking(bool _block) noexcept
