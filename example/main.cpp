@@ -9,11 +9,16 @@ int main()
 {
     ServerSocket serverSocket;
 
-    serverSocket.setBlocking(true);
     serverSocket.setReuseAddress(true);
-    // serverSocket.setReceiveBufferSize(1024);
-    // serverSocket.setTimeout(5);
+    serverSocket.setReusePort(true);
     serverSocket.bind(nullptr, 80);
+    serverSocket.setKeepAlive(true);
+    serverSocket.setReceiveBufferSize(1024);
+    serverSocket.setSendBufferSize(1024);
+    serverSocket.setReceiveTimeout(5);
+    serverSocket.setSendTimeout(5);
+    serverSocket.setBlocking(false);
+
     serverSocket.listen(50);
 
     // for (;;) {

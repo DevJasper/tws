@@ -16,10 +16,14 @@ export namespace net {
         void close() noexcept;
         [[nodiscard]] bool isBound() noexcept;
         [[nodiscard]] bool isClosed() noexcept;
-        void setBlocking(bool) noexcept;
         void setReuseAddress(bool) noexcept;
+        void setReusePort(bool) noexcept;
+        void setBlocking(bool) noexcept;
+        void setKeepAlive(bool) noexcept;
         void setReceiveBufferSize(int) noexcept;
-        void setTimeout(int) noexcept;
+        void setSendBufferSize(int) noexcept;
+        void setReceiveTimeout(int) noexcept;
+        void setSendTimeout(int) noexcept;
 
     private:
         const char* address = nullptr;
@@ -29,8 +33,7 @@ export namespace net {
         bool closed = false;
         struct {
             bool reuseAddress = false;
-            int receiveBufferSize = 0;
-            int timeout = 0; // seconds
+            bool reusePort = false;
         } socketOptions;
     };
 
