@@ -1,5 +1,3 @@
-module;
-
 export module net.server_socket;
 
 export namespace net {
@@ -28,7 +26,6 @@ export namespace net {
     private:
         const char* address = nullptr;
         int fd = -1, port = 0;
-        bool blocking = true;
         bool bound = false;
         bool closed = false;
         struct {

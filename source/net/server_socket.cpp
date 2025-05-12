@@ -57,9 +57,6 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
 
     for (res = result; res != nullptr; res = res->ai_next) {
 
-        if (!blocking)
-            res->ai_socktype |= SOCK_NONBLOCK;
-
         fd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (fd == -1)
             continue;
