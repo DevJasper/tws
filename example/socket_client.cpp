@@ -20,6 +20,8 @@ int main()
     //     int clientFd = socket.accept();
     //     std::println("Client fd: {}", clientFd);
     // }
+
+    std::println("File descriptor {}", socket.fileDescriptor());
     std::println("Is connected {}", socket.isConnected());
     std::println("Is closed {}", socket.isClosed());
     socket.close();

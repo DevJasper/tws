@@ -17,6 +17,7 @@ using namespace net;
 
 Socket::Socket(const int _fd)
     : fd(_fd)
+    , connected(true)
 {
 }
 
@@ -34,7 +35,7 @@ void Socket::connect(const char* _address, const int _port) noexcept
 {
     address = _address;
     port = _port;
-    struct addrinfo hints, *result, *res;
+    struct addrinfo hints, *result;
 
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -49,7 +50,7 @@ void Socket::connect(const char* _address, const int _port) noexcept
         std::exit(EXIT_FAILURE);
     }
 
-    for (res = result; res != nullptr; res = res->ai_next) {
+    for (auto* res = result; res != nullptr; res = res->ai_next) {
 
         fd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (fd == -1)
@@ -61,11 +62,12 @@ void Socket::connect(const char* _address, const int _port) noexcept
         }
 
         ::close(fd);
+        fd = -1;
     }
 
     ::freeaddrinfo(result);
 
-    if (res == nullptr) {
+    if (isConnected()) {
         std::println("[ERROR] Failed to connect socket");
         std::exit(EXIT_FAILURE);
     }
@@ -75,13 +77,9 @@ void Socket::connect(const char* _address, const int _port) noexcept
 
 void Socket::close() noexcept
 {
-    if (fd == -1) {
-        std::println("[WARNING] Socket is already closed.");
-        return;
-    }
 
     if (!isConnected()) {
-        std::println("[WARNING] Socket is not connected; nothing to close.");
+        // std::println("[WARNING] Socket is not connected; nothing to close.");
         return;
     }
 
@@ -90,11 +88,11 @@ void Socket::close() noexcept
         return;
     }
 
+    std::println("[INFO] Socket {} closed successfully.", fd);
+
     fd = -1;
     connected = false;
     closed = true;
-
-    std::println("[INFO] Socket closed successfully.");
 }
 
 [[nodiscard]] bool Socket::isConnected() noexcept

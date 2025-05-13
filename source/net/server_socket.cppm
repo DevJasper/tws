@@ -1,4 +1,10 @@
+module;
+
+#include <memory>
+
 export module net.server_socket;
+
+import net.socket;
 
 export namespace net {
     class ServerSocket {
@@ -7,10 +13,11 @@ export namespace net {
         ServerSocket(const int, const int = 10);
         ServerSocket(const char*, const int, const int = 10);
         ~ServerSocket();
+        [[nodiscard]] inline int fileDescriptor() noexcept { return fd; };
         void bind(const int) noexcept;
         void bind(const char*, const int) noexcept;
         void listen(const int = 10) noexcept;
-        int accept() noexcept;
+        std::unique_ptr<Socket> accept() noexcept;
         void close() noexcept;
         [[nodiscard]] bool isBound() noexcept;
         [[nodiscard]] bool isClosed() noexcept;

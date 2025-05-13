@@ -2,7 +2,9 @@ module;
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <expected>
 #include <fcntl.h>
+#include <memory>
 #include <netdb.h>
 #include <print>
 #include <string>
@@ -40,7 +42,7 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
 {
     address = _address;
     port = _port;
-    struct addrinfo hints, *result, *res;
+    struct addrinfo hints, *result;
 
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -55,7 +57,7 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
         std::exit(EXIT_FAILURE);
     }
 
-    for (res = result; res != nullptr; res = res->ai_next) {
+    for (auto* res = result; res != nullptr; res = res->ai_next) {
 
         fd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (fd == -1)
@@ -87,11 +89,12 @@ void ServerSocket::bind(const char* _address, const int _port) noexcept
         }
 
         ::close(fd);
+        fd = -1;
     }
 
     ::freeaddrinfo(result);
 
-    if (res == nullptr) {
+    if (!isBound()) {
         std::println("[ERROR] Failed to bind socket");
         std::exit(EXIT_FAILURE);
     }
@@ -111,31 +114,27 @@ void ServerSocket::listen(const int _backlog) noexcept
     std::println("[SUCCESS] Socket listening on port {}", port);
 }
 
-int ServerSocket::accept() noexcept
+std::unique_ptr<Socket> ServerSocket::accept() noexcept
 {
     struct sockaddr_in clientAddress;
-    socklen_t clientAddressLen = sizeof(address);
-
-    // int clientFd = ::accept4(fd, (struct sockaddr*)&clientAddress, &clientAddressLen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    socklen_t clientAddressLen = sizeof(clientAddress);
 
     int clientFd = ::accept4(fd, (struct sockaddr*)&clientAddress, &clientAddressLen, SOCK_CLOEXEC);
-    if (clientFd == -1)
-        ::perror("[ERROR] Socket failed to listen on port");
 
-    // Use std::expected here, return -1 clientfd or Socket when fd is not -1
+    if (clientFd == -1) {
+        perror("[ERROR] Failed to accept incoming connection on socket");
+        return nullptr;
+    }
 
-    return clientFd;
+    std::println("[INFO] Accepted client with fd: {}", clientFd);
+
+    return std::make_unique<Socket>(clientFd);
 }
 
 void ServerSocket::close() noexcept
 {
-    if (fd == -1) {
-        std::println("[WARNING] Socket is already closed.");
-        return;
-    }
-
     if (!isBound()) {
-        std::println("[WARNING] Socket is not bound; nothing to close.");
+        // std::println("[WARNING] Socket is not bound; nothing to close.");
         return;
     }
 
@@ -144,11 +143,11 @@ void ServerSocket::close() noexcept
         return;
     }
 
+    std::println("[INFO] Server socket {} closed successfully.", fd);
+
     fd = -1;
     bound = false;
     closed = true;
-
-    std::println("[INFO] Socket closed successfully.");
 }
 
 [[nodiscard]] bool ServerSocket::isBound() noexcept
@@ -204,7 +203,7 @@ void ServerSocket::setKeepAlive(bool _on) noexcept
 {
 
     if (!isBound()) {
-        std::println("[ERROR] Cannot active socket keep alive mode: socket is not initialized");
+        std::println("[ERROR] Cannot activate socket keep alive mode: socket is not initialized");
         return;
     }
 

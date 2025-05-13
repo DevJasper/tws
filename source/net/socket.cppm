@@ -7,6 +7,7 @@ export namespace net {
         Socket(const int);
         Socket(const char*, const int);
         ~Socket();
+        [[nodiscard]] inline int fileDescriptor() noexcept { return fd; };
         void connect(const char*, const int) noexcept;
         void close() noexcept;
         [[nodiscard]] bool isConnected() noexcept;
